@@ -7,9 +7,13 @@ given to it by the OS(referred to as "standard console")
 
 
 this includes:
+
 -simple input and output to kubic's console
+
 -colorize the text that is on the screen
+
 -customize the font within kubic's console(size, style, etc.)
+
 -rendering of sprites
 
 
