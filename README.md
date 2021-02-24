@@ -21,6 +21,8 @@ using kubic's console will allow more simplistic usage of a console window
 without having to learn the windows API or some barely documented library
 to colorize some text on a standard console window.
 
+if you like making games within the console this is something I suggest to use.
+
 all of its dependcies are included inside of this repository itself.
 So downloading or installing any additional dependcies for this library is not needed.
 
