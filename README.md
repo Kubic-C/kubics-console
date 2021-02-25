@@ -2,7 +2,7 @@
 this point of this library is to make its own console window(referred to as "kubic's console") instead of using the one
 given to it by the OS(referred to as "standard console") 
 
-Kubic's console allows cross-platform usage of a custom made console with the vulkan API. 
+Kubic's console allows cross-platform usage of a custom made console with opengl. 
 
 this includes:
 
