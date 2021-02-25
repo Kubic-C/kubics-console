@@ -23,22 +23,49 @@ add_library(
     ${sources}
 )
 
+# glm lib
 target_link_libraries(
 	kconsole
-	PUBLIC
+	PRIVATE
 	glm_static
 )
 
+# ft2 lib
 target_link_libraries(
 	kconsole
-	PUBLIC
+	PRIVATE
 	freetype
 )
 
-target_include_directories(
+# glfw lib
+target_link_libraries(
 	kconsole
-	PUBLIC
-	${FREETYPE2_DIR}
+	PRIVATE
+	glfw
 )
 
-message(STATUS "DIR TO FT2: ${FREETYPE2_DIR}")
+#glew lib
+target_compile_definitions(
+	kconsole
+	PRIVATE
+	GLEW_STATIC
+)
+
+target_link_libraries(
+	kconsole
+	PRIVATE
+	opengl32.lib
+)
+
+target_link_libraries(
+	kconsole
+	PRIVATE
+	${GLEW_LIB_DIR}
+)
+
+# glew include path
+target_include_directories(
+	kconsole
+	PRIVATE
+	${GLEW_DIR}
+)
