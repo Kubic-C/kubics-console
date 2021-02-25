@@ -22,3 +22,23 @@ add_library(
     ${headers}
     ${sources}
 )
+
+target_link_libraries(
+	kconsole
+	PUBLIC
+	glm_static
+)
+
+target_link_libraries(
+	kconsole
+	PUBLIC
+	freetype
+)
+
+target_include_directories(
+	kconsole
+	PUBLIC
+	${FREETYPE2_DIR}
+)
+
+message(STATUS "DIR TO FT2: ${FREETYPE2_DIR}")
