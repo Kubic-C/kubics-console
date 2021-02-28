@@ -23,8 +23,7 @@ if you like making games within the console this is something I suggest to use.
 
 all of its dependcies are included inside of this repository itself.
 So downloading or installing any additional dependcies for this library is not needed,
-BUT if your on a linux-distro YOU will need to configure GLEW itself, i plan to fix
-this.
+BUT if your on a linux-distro you will need to configure GLEW itself.
 
 generate the project with cmake and use a build system and compiler of your choice.
 
