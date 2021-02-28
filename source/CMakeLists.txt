@@ -2,18 +2,18 @@
 
 set(headers
     "kconsole/headers/base.hpp"
-    "kconsole/headers/font_loading.hpp"
+    "kconsole/headers/kconsole_font.hpp"
     "kconsole/headers/kconsole.hpp"
     "kconsole/headers/kconsole_buffer.hpp"
-    "kconsole/headers/kconsole_character.hpp"
+	"kconsole/headers/kconsole_shader.hpp"
 )
 
 set(sources
     "kconsole/base.cpp"
-    "kconsole/font_loading.cpp"
+    "kconsole/kconsole_font.cpp"
     "kconsole/kconsole.cpp"
     "kconsole/kconsole_buffer.cpp"
-    "kconsole/kconsole_character.cpp"
+	"kconsole/kconsole_shader.cpp"
 )
 
 add_library(
@@ -26,7 +26,7 @@ add_library(
 # glm lib
 target_link_libraries(
 	kconsole
-	PRIVATE
+	PUBLIC
 	glm_static
 )
 
@@ -40,32 +40,33 @@ target_link_libraries(
 # glfw lib
 target_link_libraries(
 	kconsole
-	PRIVATE
+	PUBLIC
 	glfw
 )
 
-#glew lib
+# openGL lib
+target_link_libraries(
+	kconsole
+	PUBLIC
+	opengl32.lib
+)
+
+# glew lib
 target_compile_definitions(
 	kconsole
-	PRIVATE
+	PUBLIC
 	GLEW_STATIC
 )
 
 target_link_libraries(
 	kconsole
-	PRIVATE
-	opengl32.lib
-)
-
-target_link_libraries(
-	kconsole
-	PRIVATE
+	PUBLIC
 	${GLEW_LIB_DIR}
 )
 
 # glew include path
 target_include_directories(
 	kconsole
-	PRIVATE
+	PUBLIC
 	${GLEW_DIR}
 )

@@ -30,7 +30,7 @@ namespace kconsole
 		std::cout << "freetype2: " << (error == 0 ? "ok" : "error code(" + std::to_string(error) + ")") << '\n';
 
 		glm::mat4x4 mat;
-		std::cout << "glm: " <<"ok" << '\n';
+		std::cout << "glm: " << "ok" << '\n';
 
 		error = glfwInit();
 		GLFWwindow* window = glfwCreateWindow(100, 100, "libtest", nullptr, nullptr);
