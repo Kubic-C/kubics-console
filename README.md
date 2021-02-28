@@ -3,6 +3,7 @@ this point of this library is to make its own console window(referred to as "kub
 given to it by the OS(referred to as "standard console") 
 
 Kubic's console allows cross-platform usage of a custom made console with opengl. 
+Kubic's console is a more refined version of of PMUT's and PMUT-CMAKE's console.
 
 this includes:
 
