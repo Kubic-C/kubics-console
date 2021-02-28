@@ -240,6 +240,11 @@ namespace kconsole
 		return last_error;
 	}
 
+	bool _console_impl::get_done() const
+	{
+		return done;
+	}
+
 	// private methods //
 	bool _console_impl::make_window()
 	{

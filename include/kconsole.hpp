@@ -16,17 +16,32 @@
 
 
 #ifdef _WIN32 
-#define  MAIN WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
-#endif // _WIN32
+#define  MAIN \
+WINAPI WinMain( \
+_In_ HINSTANCE hInstance, \
+_In_opt_ HINSTANCE hPrevInstance, \
+_In_ LPSTR lpCmdLine, \
+_In_ int nShowCmd \
+)
+
+#define WIN_INCLUDE <Windows.h>
+#else // linux or mac
+#define MAIN main(int argc, argv**)
+#endif  // _WIN32
 
 namespace kconsole
 {
 	typedef void* winptr;
 
-	// the console class
-	// allows you to interact
-	// and make your own
-	// console window
+	/* the console class
+	 * allows you to interact
+	 * and make your own
+	 * console window
+	 *
+	 * note: use kconsole::console
+	 * to instantiate a console
+	 * window instead
+	*/ 
 	class _console_impl : 
 		protected output_manager, protected input_manager
 	{
@@ -93,6 +108,8 @@ namespace kconsole
 		);
 
 		// set the color of chararacters between two points, thread protected with a mutex
+		// note: this a slightly expenisve function, don't do too often;
+		// one time is all you need to do make it have an affect!
 		void set_color_mtx(
 			glm::ivec2 pos1,
 			glm::ivec2 pos2,
@@ -109,19 +126,21 @@ namespace kconsole
 		void clear_mtx();
 
 		// returns true if 'key' is being pressed, thread protected with a mutex
-		bool key_pressed_mtx(int key);
+		bool key_pressed_mtx(
+			int key
+		);
 
 	public:
 		// get the last error
 		std::string get_last_error();
 
 		// see if the console is done
-		bool get_done() const { return done; }
+		bool get_done() const;
 
 	protected:
 		winptr       window;
-		bool*		 window_good;
-		std::thread* tmain;
+		bool*		 window_good; 
+		std::thread* tmain; // main console runs on this thread
 
 		// thread safety and flags
 		bool done;
@@ -155,7 +174,7 @@ namespace kconsole
 		std::string				  vertex_source_dir_arg;
 		std::string				  frag_source_dir_arg;
 
-		void wait_for_call();
+		// utlity and helper functions
 
 		bool make_window();
 
@@ -165,6 +184,7 @@ namespace kconsole
 
 		void main();
 
+		// insures thread safety, i.e. no data racing
 		class thread_gaurd
 		{
 		public:
@@ -187,19 +207,14 @@ namespace kconsole
 		};
 	};
 
-	// a simple wrapper for _console_impl
-	//
-	// use this to initialize a console
-	// window
-	//
-	// use '->' operator to access
-	// console
-	//
-	// -- console --
-	// the console class
-	// allows you to interact
-	// and make your own
-	// console window
+	/* console
+	 * constructs and handles a console
+	 * window with its respective buffers.
+	 note:
+	 * This is a wrapper for _console_impl,
+	 * use this instead of allocating
+	 * _console_impl directly.
+	*/
 	class console
 	{
 	public:

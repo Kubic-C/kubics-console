@@ -285,14 +285,9 @@ namespace kconsole
 	// private methods //
 	void output_manager::_generate_cells()
 	{
+		output_buffer.resize(cell_dim.x);
 		for (int x = 0; x < cell_dim.x; x++)
-		{
-			output_buffer.emplace_back();
-			for (int y = 0; y < cell_dim.y; y++)
-			{
-				output_buffer.back().emplace_back();
-			}
-		}
+			output_buffer[x].resize(cell_dim.y);
 	}
 
 	void output_manager::delete_font()

@@ -6,6 +6,7 @@ set(headers
     "kconsole/headers/kconsole.hpp"
     "kconsole/headers/kconsole_buffer.hpp"
 	"kconsole/headers/kconsole_shader.hpp"
+	"kconsole/headers/helper.hpp"
 )
 
 set(sources
@@ -14,6 +15,7 @@ set(sources
     "kconsole/kconsole.cpp"
     "kconsole/kconsole_buffer.cpp"
 	"kconsole/kconsole_shader.cpp"
+	"kconsole/helper.cpp"
 )
 
 add_library(

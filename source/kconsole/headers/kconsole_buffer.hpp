@@ -154,6 +154,11 @@ namespace kconsole
 		int mods;
 	};
 
+	/* input_manager
+	 * impl for input manager
+	 * not supposed to be created
+	 * by itself
+	*/
 	class input_manager
 	{
 	public:
@@ -185,6 +190,11 @@ namespace kconsole
 		
 	};
 
+	/* output_manager
+	 * impl for output manager
+	 * not supposed to be created
+	 * by itself
+	*/
 	class output_manager
 	{
 	public:
