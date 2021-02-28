@@ -6,6 +6,10 @@
 
 #include <stdint.h>
 #include <string>
+#include <mutex>
+#include <thread>
+#include <condition_variable>
+#include <vector>
 
 #ifndef _VC_RUNTIME // not using MSVC
 typedef unsigned int size_t;

@@ -15,7 +15,11 @@ namespace kconsole
 	gl_program* cur_prog;
 	glm::vec2* cur_draw_pos;
 
-	void window_size_callback(GLFWwindow* window, int width, int height)
+	void window_size_callback(
+		GLFWwindow* window,
+		int width,
+		int height
+	)
 	{
 		*cur_mat = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height));
 		if(cur_prog)
@@ -24,7 +28,12 @@ namespace kconsole
 		cur_draw_pos->y = static_cast<float>(height - highest_glyph);
 	}
 
-	void framebuffer_callback(GLFWwindow* window, int width, int height)
+	void framebuffer_callback(
+		GLFWwindow* window,
+		int width, 
+		int height
+	
+	)
 	{
 		glViewport(0, 0, width, height);
 	}
@@ -123,13 +132,20 @@ namespace kconsole
 	}
 
 	// output_buffer //
-	void _console_impl::use_font_mtx(font* font)
+	void _console_impl::use_font_mtx(
+		font* font
+	)
 	{
 		thread_gaurd tg(mtx, wait);
 		use_font(font);
 	}
 
-	void _console_impl::use_font_mtx(const char* font_dir, bool& isgood, size_t font_size, size_t loading_range)
+	void _console_impl::use_font_mtx(
+		const char* font_dir, 
+		bool& isgood, 
+		size_t font_size,
+		size_t loading_range
+	)
 	{
 		thread_gaurd tg(mtx, wait);
 		font_isgood_arg = &isgood;
@@ -139,14 +155,20 @@ namespace kconsole
 		use_new_font = true;
 	}
 
-	void _console_impl::use_program_mtx(gl_program* program_)
+	void _console_impl::use_program_mtx(
+		gl_program* program_
+	)
 	{
 		thread_gaurd tg(mtx, wait);
 		use_program(program_);
 	} 
 
-	void _console_impl::use_program_mtx(std::vector<std::string>& errors,
-		const char* vertex_source_dir, const char* frag_source_dir, bool& isgood)
+	void _console_impl::use_program_mtx(
+		std::vector<std::string>& errors,
+		const char* vertex_source_dir, 
+		const char* frag_source_dir, 
+		bool& isgood
+	)
 	{
 		thread_gaurd tg(mtx, wait);
 		prog_isgood_arg = &isgood;
@@ -156,13 +178,18 @@ namespace kconsole
 		use_new_program = true;
 	}
 
-	void _console_impl::write2D_mtx(wchar_t** buf)
+	void _console_impl::write2D_mtx(
+		wchar_t** buf
+	)
 	{
 		thread_gaurd tg(mtx, wait);
 		write2D(buf);
 	}
 
-	void _console_impl::write1D_mtx(wchar_t* buf, int buf_size)
+	void _console_impl::write1D_mtx(
+		wchar_t* buf,
+		int buf_size
+	)
 	{
 		thread_gaurd tg(mtx, wait);
 		write1D(buf, buf_size);
@@ -179,7 +206,9 @@ namespace kconsole
 	}
 
 	// input_manager //
-	void _console_impl::get_in_buf_mtx(std::wstring& str)
+	void _console_impl::get_in_buf_mtx(
+		std::wstring& str
+	)
 	{
 		thread_gaurd tg(mtx, wait);
 		get_in_buf(str);
@@ -189,6 +218,14 @@ namespace kconsole
 	{
 		thread_gaurd tg(mtx, wait);
 		clear();
+	}
+
+	bool _console_impl::key_pressed_mtx(
+		int key
+	)
+	{
+		thread_gaurd tg(mtx, wait);
+		return key_pressed(window, key);
 	}
 
 	// getters //
@@ -230,7 +267,6 @@ namespace kconsole
 		cur_prog = nullptr;
 		cur_draw_pos = &draw_pos;
 
-	good:
 		return true;
 
 	bad:
@@ -253,7 +289,7 @@ namespace kconsole
 				done = true;
 
 			highest_glyph = current_font->atlas_height;
-			draw_pos.y = height_arg - highest_glyph;
+			draw_pos.y = static_cast<size_t>(height_arg) - highest_glyph;
 			use_new_font = false;
 			changed = true;
 		}

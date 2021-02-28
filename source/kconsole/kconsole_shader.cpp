@@ -23,13 +23,20 @@ namespace kconsole
 	}
 
 	// methods //
-	void gl_program::compile(std::string& vertex_error, std::string& fragment_error, bool& vertex_isgood, bool& frag_isgood)
+	void gl_program::compile(
+		std::string& vertex_error, 
+		std::string& fragment_error,
+		bool& vertex_isgood,
+		bool& frag_isgood
+	)
 	{
 		vertex_error = _compile(vertex_id, vertex_isgood);
 		fragment_error = _compile(frag_id, frag_isgood);
 	}
 
-	std::string gl_program::link(bool& isgood)
+	std::string gl_program::link(
+		bool& isgood
+	)
 	{
 
 		glAttachShader(id, vertex_id);
@@ -55,7 +62,9 @@ namespace kconsole
         return std::string("");
 	}
 
-	bool gl_program::set_vertex_source(const char* dir)
+	bool gl_program::set_vertex_source(
+		const char* dir
+	)
 	{
 		std::ifstream file(dir);
 		if (file.bad() || !file.is_open())
@@ -72,7 +81,9 @@ namespace kconsole
 		return true;
 	}
 
-	bool gl_program::set_frag_source(const char* dir)
+	bool gl_program::set_frag_source(
+		const char* dir
+	)
 	{
 		std::ifstream file(dir);
 		if (file.bad() || !file.is_open())
@@ -95,7 +106,10 @@ namespace kconsole
 	}
 
 	// private methods //
-	std::string gl_program::_compile(uint32_t id, bool& isgood)
+	std::string gl_program::_compile(
+		uint32_t id,
+		bool& isgood
+	)
 	{
 		glCompileShader(id);
 

@@ -12,20 +12,24 @@
 
 namespace kconsole
 {
-	extern std::wstring* local_in_buf;
 	std::wstring* local_in_buf = nullptr;
 
-	void character_callback(GLFWwindow* window, unsigned int codepoint)
+	void character_callback(
+		GLFWwindow* window,
+		unsigned int codepoint
+	)
 	{
 		*local_in_buf += (wchar_t)codepoint;
 	}
 
-	extern std::queue<key_event>* local_key_buf;
-	std::queue<key_event>* local_key_buf = 0;
-
-	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+	void key_callback(
+		GLFWwindow* window,
+		int key, 
+		int scancode, 
+		int action, 
+		int mods
+	)
 	{
-		local_key_buf->push({key, scancode, action, mods});
 	}
 }
 
@@ -35,11 +39,11 @@ namespace kconsole
 	input_manager::input_manager()
 	{
 		local_in_buf = &in_buf;
-		local_key_buf = &keyboard_events;
-		keyboard_events.push({ GLFW_KEY_A, 0, 0, 0 });
 	}
 
-	void input_manager::get_in_buf(std::wstring& str)
+	void input_manager::get_in_buf(
+		std::wstring& str
+	)
 	{
 		str = in_buf;
 	}
@@ -49,10 +53,20 @@ namespace kconsole
 		in_buf.clear();
 	}
 
-	void input_manager::set_callbacks(void* window)
+	void input_manager::set_callbacks(
+		void* window
+	)
 	{
 		glfwSetCharCallback((GLFWwindow*)window, character_callback);
 		glfwSetKeyCallback((GLFWwindow*)window, key_callback);
+	}
+
+	bool input_manager::key_pressed(
+		void* window, 
+		int key
+	)
+	{
+		return glfwGetKey((GLFWwindow*)window, key) != GLFW_RELEASE;
 	}
 }
 
@@ -73,12 +87,18 @@ namespace kconsole
 			delete current_font;
 	}
 
-	output_manager::output_manager(int width, int height)
+	output_manager::output_manager(
+		int width,
+		int height
+	)
 	{
 		construct(width, height);
 	}
 
-	void output_manager::construct(int width, int height)
+	void output_manager::construct(
+		int width, 
+		int height
+	)
 	{
 		cell_dim.x = width;
 		cell_dim.y = height;
@@ -147,12 +167,19 @@ namespace kconsole
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	void output_manager::use_font(font* font_ptr)
+	void output_manager::use_font(
+		font* font_ptr
+	)
 	{
 		current_font = font_ptr;
 	}
 
-	void output_manager::use_font(const char* font_dir, bool& isgood, size_t font_size, size_t loading_range)
+	void output_manager::use_font(
+		const char* font_dir, 
+		bool& isgood, 
+		size_t font_size, 
+		size_t loading_range
+	)
 	{
 		delete_font();
 		current_font = new font(font_dir, isgood, font_size, loading_range);
@@ -160,14 +187,19 @@ namespace kconsole
 			delete_font();
 	}
 
-	void output_manager::use_program(gl_program* program)
+	void output_manager::use_program(
+		gl_program* program
+	)
 	{
 		delete_program();
 		this->program = program;
 	}
 
-	bool output_manager::use_program(std::vector<std::string>& errors,
-		const char* vertex_source_dir, const char* frag_source_dir)
+	bool output_manager::use_program(
+		std::vector<std::string>& errors,
+		const char* vertex_source_dir,
+		const char* frag_source_dir
+	)
 	{
 		delete_program();
 		program = new gl_program;
@@ -192,7 +224,9 @@ namespace kconsole
 		return false;
 	}
 
-	void output_manager::write2D(wchar_t** buf)
+	void output_manager::write2D(
+		wchar_t** buf
+	)
 	{
 		for (int x = 0; x < cell_dim.x; x++)
 			for (int y = 0; y < cell_dim.y; y++)
@@ -204,7 +238,10 @@ namespace kconsole
 			}
 	}
 
-	void output_manager::write1D(wchar_t* buf, int buf_size)
+	void output_manager::write1D(
+		wchar_t* buf,
+		int buf_size
+	)
 	{
 		for (int x = 0; x < cell_dim.x; x++)
 			for (int y = 0; y < cell_dim.y; y++)
@@ -223,10 +260,14 @@ namespace kconsole
 		return;
 	}
 
-	void output_manager::set_color(glm::ivec2 pos1, glm::ivec2 pos2, glm::vec3 color)
+	void output_manager::set_color(
+		glm::ivec2 pos1, 
+		glm::ivec2 pos2,
+		glm::vec3 color
+	)
 	{
-		for (int x = 0; x < pos2.x; x++)
-			for (int y = 0; y < pos2.y; y++)
+		for (int x = 0; x < cell_dim.x && x < pos2.x; x++)
+			for (int y = 0; y < cell_dim.y && y < pos2.y; y++)
 				if ((x >= pos1.x && y >= pos1.y) && (pos2.x >= x && pos2.y >= y))
 					output_buffer[x][y].data.color = color;
 	}

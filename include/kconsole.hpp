@@ -13,9 +13,11 @@
 	"KCONSOLE ERROR: either the font or program has not been set"
 
 #include "kconsole_buffer.hpp"
-#include <mutex>
-#include <thread>
-#include <condition_variable>
+
+
+#ifdef _WIN32 
+#define  MAIN WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
+#endif // _WIN32
 
 namespace kconsole
 {
@@ -78,11 +80,13 @@ namespace kconsole
 		);
 
 		// write to the console output buffer using a 2D buffer, thread protected with a mutex
+		// heap allocated arrays only!
 		void write2D_mtx(
 			wchar_t** buf
 		);
 
 		// write to the console output buffer using a 1D buffer, thread protected with a mutex
+		// heap allocated arrays only!
 		void write1D_mtx(
 			wchar_t* buf, 
 			int buf_size
@@ -104,6 +108,9 @@ namespace kconsole
 		// clear the input buffer, thread protected with a mutex
 		void clear_mtx();
 
+		// returns true if 'key' is being pressed, thread protected with a mutex
+		bool key_pressed_mtx(int key);
+
 	public:
 		// get the last error
 		std::string get_last_error();
@@ -121,6 +128,7 @@ namespace kconsole
 		bool error;
 		std::mutex mtx_cv;
 		std::mutex mtx;
+		std::atomic<int> wait = 0;
 		std::vector<std::string> error_info;
 		std::condition_variable cond_var;
 
@@ -156,6 +164,27 @@ namespace kconsole
 		void _start();
 
 		void main();
+
+		class thread_gaurd
+		{
+		public:
+			thread_gaurd(std::mutex& mtx, std::atomic<int>& w)
+				: mtx(mtx), w(w)
+			{
+				w++;
+				mtx.lock();
+			}
+
+			~thread_gaurd()
+			{
+				w--;
+				mtx.unlock();
+			}
+
+		private:
+			std::mutex& mtx;
+			std::atomic<int>& w;
+		};
 	};
 
 	// a simple wrapper for _console_impl

@@ -15,7 +15,10 @@
 namespace kconsole
 {
 	// functions //
-	char_quad cdtocq(char_data& cd, glm::vec2& pos)
+	char_quad cdtocq(
+		char_data& cd,
+		glm::vec2& pos
+	)
 	{
 		float x2 = pos.x + static_cast<float>(cd.bearing.x);
 		float y2 = pos.y - (static_cast<float>(cd.dim.y) - static_cast<float>(cd.bearing.y));
@@ -47,14 +50,26 @@ namespace kconsole
 		unload_font();
 	}
 
-	font::font(const char* font_dir, bool& isgood, size_t font_size, size_t loading_range)
+	font::font(
+		const char* font_dir,
+		bool& isgood,
+		size_t font_size,
+		size_t loading_range
+	)
 		: clookup(nullptr), size(0), tex_id(0)
 	{
 		isgood = load_font(font_dir, font_size, loading_range);
 	}
 
 	// helper functions //
-	void make_texture_atlas(FT_Face& face, char_data*& clookup, size_t& atlas_height, size_t& size, uint32_t& tex, size_t loading_range)
+	void make_texture_atlas(
+		FT_Face& face,
+		char_data*& clookup,
+		size_t& atlas_height, 
+		size_t& size, 
+		uint32_t& tex,
+		size_t loading_range
+	)
 	{
 		// get data to make texture atlas
 		clookup = new char_data[loading_range];
@@ -139,7 +154,11 @@ namespace kconsole
 	}
 
 	// methods //
-	bool font::load_font(const char* font_dir, size_t font_size, size_t loading_range)
+	bool font::load_font(
+		const char* font_dir,
+		size_t font_size,
+		size_t loading_range
+	)
 	{
 		FT_Library lib;
 		if (FT_Init_FreeType(&lib) != 0)
@@ -174,13 +193,17 @@ namespace kconsole
 		}
 	}
 
-	char_data font::get_char(char char_)
+	char_data font::get_char(
+		char char_
+	)
 	{
 		assert(clookup != nullptr);
 		return clookup[static_cast<ichar>(char_)];
 	}
 
-	char_data font::get_char(wchar_t char_)
+	char_data font::get_char(
+		wchar_t char_
+	)
 	{
 		assert(clookup != nullptr);
 		return clookup[static_cast<ichar>(char_)];

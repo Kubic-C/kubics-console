@@ -16,16 +16,27 @@ namespace kconsole
 
 	public:
 		// compile both shaders
-		void compile(std::string& vertex_error, std::string& fragment_error, bool& vertex_isgood, bool& frag_isgood);
+		void compile(
+			std::string& vertex_error, 
+			std::string& fragment_error, 
+			bool& vertex_isgood, 
+			bool& frag_isgood
+		);
 
 		// link shaders into program
-		std::string link(bool& isgood);
+		std::string link(
+			bool& isgood
+		);
 	
 		// get vertex shader source code from file
-		bool set_vertex_source(const char* dir);
+		bool set_vertex_source(
+			const char* dir
+		);
 
 		// get vertex shader source code from file
-		bool set_frag_source(const char* dir);
+		bool set_frag_source(
+			const char* dir
+		);
 
 		// use the program
 		void use();
@@ -36,7 +47,10 @@ namespace kconsole
 		uint32_t vertex_id;
 		uint32_t frag_id;
 
-		std::string _compile(uint32_t id, bool& isgood);
+		std::string _compile(
+			uint32_t id,
+			bool& isgood
+		);
 	};
 }
 

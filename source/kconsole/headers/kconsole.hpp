@@ -13,9 +13,11 @@
 	"KCONSOLE ERROR: either the font or program has not been set"
 
 #include "kconsole_buffer.hpp"
-#include <mutex>
-#include <thread>
-#include <condition_variable>
+
+
+#ifdef _WIN32 
+#define  MAIN WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
+#endif // _WIN32
 
 namespace kconsole
 {
@@ -105,6 +107,9 @@ namespace kconsole
 
 		// clear the input buffer, thread protected with a mutex
 		void clear_mtx();
+
+		// returns true if 'key' is being pressed, thread protected with a mutex
+		bool key_pressed_mtx(int key);
 
 	public:
 		// get the last error
