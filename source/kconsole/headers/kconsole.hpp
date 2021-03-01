@@ -76,8 +76,8 @@ namespace kconsole
 		void use_font_mtx(
 			const char* font_dir,
 			bool& isgood, 
-			size_t font_size = 48,
-			size_t loading_range = 128
+			uint32_t font_size = 48,
+			uint32_t loading_range = 128
 		);
 
 		// set/use a program, thread protected with a mutex

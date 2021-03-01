@@ -143,8 +143,8 @@ namespace kconsole
 	void _console_impl::use_font_mtx(
 		const char* font_dir, 
 		bool& isgood, 
-		size_t font_size,
-		size_t loading_range
+		uint32_t font_size,
+		uint32_t loading_range
 	)
 	{
 		thread_gaurd tg(mtx, wait);

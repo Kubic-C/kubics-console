@@ -53,8 +53,8 @@ namespace kconsole
 	font::font(
 		const char* font_dir,
 		bool& isgood,
-		size_t font_size,
-		size_t loading_range
+		uint32_t font_size,
+		uint32_t loading_range
 	)
 		: clookup(nullptr), size(0), tex_id(0)
 	{
@@ -65,10 +65,10 @@ namespace kconsole
 	void make_texture_atlas(
 		FT_Face& face,
 		char_data*& clookup,
-		size_t& atlas_height, 
-		size_t& size, 
+		uint32_t& atlas_height,
+		uint32_t& size,
 		uint32_t& tex,
-		size_t loading_range
+		uint32_t loading_range
 	)
 	{
 		// get data to make texture atlas
@@ -76,7 +76,7 @@ namespace kconsole
 		size = loading_range;
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
-		size_t atlas_width = 0;
+		uint32_t atlas_width = 0;
 		for (ichar c = 0; c < loading_range; c++)
 		{
 			if (FT_Load_Char(face, c, FT_LOAD_RENDER))
@@ -104,7 +104,6 @@ namespace kconsole
 			GL_UNSIGNED_BYTE,
 			nullptr
 		);
-
 
 		// put characters in the texture and add them to the lookup table
 		size_t xoffset = 0;
@@ -156,8 +155,8 @@ namespace kconsole
 	// methods //
 	bool font::load_font(
 		const char* font_dir,
-		size_t font_size,
-		size_t loading_range
+		uint32_t font_size,
+		uint32_t loading_range
 	)
 	{
 		FT_Library lib;

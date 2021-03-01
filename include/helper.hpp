@@ -24,7 +24,7 @@ namespace kconsole
     template<typename T>
     void delete_2D_array(T** array_, unsigned int width)
     {
-        for (unsigned int y = 0; y < width; y++)
+        for (int y = 0; y < width; y++)
         {
             delete[] array_[y];
         }

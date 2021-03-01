@@ -228,8 +228,8 @@ namespace kconsole
 		void use_font(
 			const char* font_dir,
 			bool& isgood,
-			size_t font_size = 48,
-			size_t loading_range = 128
+			uint32_t font_size = 48,
+			uint32_t loading_range = 128
 		);
 
 		// use a program

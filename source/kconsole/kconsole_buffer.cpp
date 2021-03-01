@@ -186,8 +186,8 @@ namespace kconsole
 	void output_manager::use_font(
 		const char* font_dir, 
 		bool& isgood, 
-		size_t font_size, 
-		size_t loading_range
+		uint32_t font_size, 
+		uint32_t loading_range
 	)
 	{
 		delete_font();
@@ -349,7 +349,7 @@ namespace kconsole
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_buffer);
 
 		constexpr int vertice_amount = 6;
-		size_t element_amount = cell_dim.x * cell_dim.y * vertice_amount;
+		uint32_t element_amount = cell_dim.x * cell_dim.y * vertice_amount;
 		auto indices = std::make_unique<uint32_t[]>(element_amount);
 		uint32_t offset = 0;
 		for (size_t i = 0; i < element_amount; i += 6)

@@ -11,10 +11,6 @@
 #include <condition_variable>
 #include <vector>
 
-#ifndef _VC_RUNTIME // not using MSVC
-typedef unsigned int size_t;
-#endif // _VC_RUNTIME
-
 // kubics-console's namespace
 namespace kconsole 
 {

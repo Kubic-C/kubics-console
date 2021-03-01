@@ -60,15 +60,15 @@ namespace kconsole
 			const char* font_dir,
 			bool& isgood, size_t 
 			font_size = 48, 
-			size_t loading_range = 128
+			uint32_t loading_range = 128
 		);
 
 	public:
 		// load font file. return true for good and returns false for bad
 		bool load_font(
 			const char* font_dir, 
-			size_t font_size = 48,
-			size_t loading_range = 128
+			uint32_t font_size = 48,
+			uint32_t loading_range = 128
 		);
 
 		// unload a font if there is any
@@ -84,11 +84,11 @@ namespace kconsole
 		);
 
 		uint32_t tex_id;
-		size_t atlas_height = 0;
+		uint32_t atlas_height = 0;
 
 	private:
 		char_data* clookup;
-		size_t size;
+		uint32_t size;
 	};
 }
 
