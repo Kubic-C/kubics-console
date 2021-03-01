@@ -4,6 +4,8 @@
 #ifndef KCONSOLE_HELPER_H
 #define KCONSOLE_HELPER_H
 
+#include <string>
+
 namespace kconsole
 {
     // name explains it
@@ -35,6 +37,15 @@ namespace kconsole
         unsigned int width,
         unsigned int height,
         wchar_t value
+    );
+
+    void print(
+        wchar_t** array_,
+        unsigned int width,
+        unsigned int height,
+        unsigned int pos_x,
+        unsigned int pos_y,
+        const std::wstring& wstr
     );
 }
 

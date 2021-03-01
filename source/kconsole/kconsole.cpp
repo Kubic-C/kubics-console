@@ -117,7 +117,7 @@ namespace kconsole
 		// wait for use_new_font and use_new_program to be set to false
 		scope_mtx scope(mtx_cv);
 		cond_var.wait(scope); // wait for window creation
-		cond_var.wait(scope); // wait for program and font creation
+		cond_var.wait(scope); // wait for program and font creation, good or bad
 	}
 
 	void _console_impl::end()
@@ -214,10 +214,16 @@ namespace kconsole
 		get_in_buf(str);
 	}
 
-	void _console_impl::clear_mtx()
+	void _console_impl::clear_output_buffer_mtx()
 	{
 		thread_gaurd tg(mtx, wait);
-		clear();
+		clear_output_buffer();
+	}
+
+	void _console_impl::clear_input_buffer_mtx()
+	{
+		thread_gaurd tg(mtx, wait);
+		clear_input_buffer();
 	}
 
 	bool _console_impl::key_pressed_mtx(
@@ -291,7 +297,12 @@ namespace kconsole
 				*font_isgood_arg, font_size_arg, loading_range_arg);
 			
 			if (!*font_isgood_arg)
+			{
+				use_new_font = false;
+				changed = true;
 				done = true;
+				goto changed_;
+			}
 
 			highest_glyph = current_font->atlas_height;
 			draw_pos.y = static_cast<size_t>(height_arg) - highest_glyph;
@@ -305,7 +316,12 @@ namespace kconsole
 				vertex_source_dir_arg.c_str(), frag_source_dir_arg.c_str());
 
 			if (!*prog_isgood_arg)
+			{
+				use_new_program = false;
+				changed = true;
 				done = true;
+				goto changed_;
+			}
 			
 			screen_mat = 
 				glm::ortho(0.0f, static_cast<float>(width_arg), 0.0f, static_cast<float>(height_arg));
@@ -319,6 +335,7 @@ namespace kconsole
 		}
 
 
+	changed_:
 		if (changed)
 			cond_var.notify_one();
 	}

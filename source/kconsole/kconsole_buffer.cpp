@@ -30,6 +30,15 @@ namespace kconsole
 		int mods
 	)
 	{
+		switch (key)
+		{
+		case KC_KEY_BACKSPACE:
+			if (local_in_buf->empty() || action == GLFW_RELEASE)
+				break;
+
+			local_in_buf->pop_back();
+			break;
+		}
 	}
 }
 
@@ -48,7 +57,7 @@ namespace kconsole
 		str = in_buf;
 	}
 
-	void input_manager::clear()
+	void input_manager::clear_input_buffer()
 	{
 		in_buf.clear();
 	}
@@ -280,6 +289,18 @@ namespace kconsole
 		glDeleteVertexArrays(1, &vertex_array);
 		glDeleteBuffers(1, &vertex_buffer);
 		glDeleteBuffers(1, &indices_buffer);
+	}
+
+	void output_manager::clear_output_buffer()
+	{
+		for(int x = 0; x < cell_dim.x; x++)
+			for (int y = 0; y < cell_dim.y; y++)
+			{
+				output_buffer[x][y].char_ = '\000';
+
+				output_buffer[x][y].data =
+					current_font->get_char(L'\000');
+			}
 	}
 
 	// private methods //

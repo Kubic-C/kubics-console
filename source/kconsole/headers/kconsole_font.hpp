@@ -14,7 +14,8 @@ namespace kconsole
 	typedef unsigned int ichar;
 
 	// char_data holds,
-	// data tells user where and how to get its data
+	// holds data on how a character
+	// should be rendered
 	struct char_data
 	{
 		uint32_t tex_id;
@@ -26,6 +27,7 @@ namespace kconsole
 	};
 
 	// char vertex, simlar to char_data
+	// but a more raw-like form of it
 	struct char_vertex
 	{
 		float vertices[2];

@@ -171,7 +171,7 @@ namespace kconsole
 		);
 
 		// clear the input buffer
-		void clear();
+		void clear_input_buffer();
 
 		// set the callbacks to a window
 		void set_callbacks(
@@ -265,6 +265,9 @@ namespace kconsole
 
 		// delete anything stored on the GPU
 		void delete_();
+
+		// clear the output buffer
+		void clear_output_buffer();
 
 	protected:
 		uint32_t vertex_array;

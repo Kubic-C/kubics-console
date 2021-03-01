@@ -122,8 +122,11 @@ namespace kconsole
 			std::wstring& str
 		);
 
-		// clear the input buffer, thread protected with a mutex
-		void clear_mtx();
+		// clear the output buffer, thread protected with a mutex
+		void clear_output_buffer_mtx();
+
+		// clear the input buffer, thread protected with a mtuex
+		void clear_input_buffer_mtx();
 
 		// returns true if 'key' is being pressed, thread protected with a mutex
 		bool key_pressed_mtx(
