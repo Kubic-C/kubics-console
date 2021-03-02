@@ -134,6 +134,12 @@
 #define KC_KEY_MENU               348
 #define KC_KEY_LAST               GLFW_KEY_MENU
 
+// settings 
+#define invoke_method(object, fun_ptr) ((*object.*fun_ptr)())
+
+#define KC_WRAPPING 0x01
+#define KC_BUFFER_WRAPPING 0x02
+
 namespace kconsole
 {
 
@@ -263,6 +269,19 @@ namespace kconsole
 			glm::vec3 color
 		);
 
+		// set the dim of the virtual screen
+		// this will affect wrapping
+		void set_virtual_screen(
+			float width,
+			float height
+		);
+
+		// return true if "setting" arg was valid
+		bool set_output_setting(
+			uint32_t setting,
+			bool enable
+		);
+
 		// delete anything stored on the GPU
 		void delete_();
 
@@ -275,6 +294,8 @@ namespace kconsole
 		uint32_t indices_buffer;
 		glm::ivec2 cell_dim;
 		glm::vec2 draw_pos;
+		glm::vec2 cur_draw_pos;
+		glm::vec2 screen_dim;
 		glm::fmat4 screen_mat;
 		std::vector<float> vertice_buffer;
 		std::vector<std::vector<cell>> output_buffer;
@@ -288,6 +309,20 @@ namespace kconsole
 		void _generate_cells();
 
 		void init_members();
+
+		// settings
+		
+		typedef void(output_manager::*out_setting_fun)();
+		typedef bool(output_manager::*out_setting_bool_fun)();
+		void do_nothing() {}
+		bool do_bool_nothing() { return false;  }
+
+		// return true if draw cursor is off screen
+		bool wrap();
+		out_setting_bool_fun wrap_setting;
+
+		void buffer_wrap();
+		out_setting_fun buffer_wrap_setting;
 	};
 }
 

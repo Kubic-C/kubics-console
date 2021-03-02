@@ -86,8 +86,11 @@ namespace kconsole
 	output_manager::output_manager()
 		: current_font(nullptr), program(nullptr), cell_dim(),
 		draw_pos(0, 0), indices_buffer(0), vertex_buffer(0), 
-		vertex_array(0), screen_mat()
+		vertex_array(0), screen_mat(), screen_dim(0, 0),
+		cur_draw_pos(draw_pos)
 	{
+		wrap_setting = &output_manager::wrap;
+		buffer_wrap_setting = &output_manager::buffer_wrap;
 	}
 
 	output_manager::~output_manager()
@@ -126,13 +129,19 @@ namespace kconsole
 		glBindTexture(GL_TEXTURE_2D, current_font->tex_id);
 
 		uint32_t count = 0;
-		float pos_x = draw_pos.x, pos_y = draw_pos.y;
+		cur_draw_pos = draw_pos;
 		for (int x = 0; x < cell_dim.x; x++)
 		{
 			for (int y = 0; y < cell_dim.y; y++)
 			{
+				// wrap returns true if the pos_y is outside
+				// of the screen, which means any more calculating
+				// will be pointless if so. 
+				if (invoke_method(this, wrap_setting))
+					goto render;
+
 				// add char quad data to the cpu vertice buffer
-				output_buffer[x][y].quad = cdtocq(output_buffer[x][y].data, glm::vec2(pos_x, pos_y));
+				output_buffer[x][y].quad = cdtocq(output_buffer[x][y].data, cur_draw_pos);
 				std::vector<float> tquad;
 				tquad.reserve(7 * 4);
 				for (int i = 0; i < 4/*num of vertices*/; i++)
@@ -155,13 +164,13 @@ namespace kconsole
 				vertice_buffer.insert(vertice_buffer.end(), tquad.begin(), tquad.end());
 
 				count++;
-				pos_x += static_cast<float>(output_buffer[x][y].data.advance);
+				cur_draw_pos.x += static_cast<float>(output_buffer[x][y].data.advance);
 			}
 
-			pos_y -= current_font->atlas_height;
-			pos_x = 0;
+			invoke_method(this, buffer_wrap_setting);
 		}
 
+	render:
 		// put the cpu vertice buffer into the gpu vertex buffer
 		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, vertice_buffer.size() * sizeof(float), &vertice_buffer[0]);
@@ -225,7 +234,6 @@ namespace kconsole
 		if (!vertex_good || !frag_good || !program_good)
 			goto bad;
 
-	good:
 		return true;
 
 	bad:
@@ -301,6 +309,44 @@ namespace kconsole
 				output_buffer[x][y].data =
 					current_font->get_char(L'\000');
 			}
+	}
+
+	void output_manager::set_virtual_screen(
+		float width,
+		float height
+	)
+	{
+		screen_dim = glm::vec2(width, height);
+	}
+	
+	bool output_manager::set_output_setting(
+		uint32_t setting,
+		bool enable
+	)
+	{
+		switch (setting)
+		{
+		case KC_WRAPPING:
+			if (enable)
+				wrap_setting = &output_manager::wrap;
+			else
+				wrap_setting = &output_manager::do_bool_nothing;
+
+			break;
+
+		case KC_BUFFER_WRAPPING:
+			if (enable)
+				buffer_wrap_setting = &output_manager::buffer_wrap;
+			else
+				buffer_wrap_setting = &output_manager::do_nothing;
+
+			break;
+
+		default:
+			return false;
+		}
+
+		return true;
 	}
 
 	// private methods //
@@ -380,5 +426,30 @@ namespace kconsole
 		glEnableVertexAttribArray(2);
 
 		glBindVertexArray(0);
+	}
+
+	// SETTING FUNC //
+
+	bool output_manager::wrap()
+	{
+		// check if current draw pos x is more then the width of the screen
+		if (cur_draw_pos.x >= (screen_dim.x - current_font->widest_glyph))
+		{
+			cur_draw_pos.y -= current_font->highest_glyph;
+			cur_draw_pos.x = 0.0f;
+
+			// no point of calculating something that
+			// won't be on screen
+			if (cur_draw_pos.y <= 0)
+				return true;
+		}
+
+		return false;
+	}
+
+	void output_manager::buffer_wrap()
+	{
+		cur_draw_pos.y -= current_font->highest_glyph;
+		cur_draw_pos.x = 0.0f;
 	}
 }

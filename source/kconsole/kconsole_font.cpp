@@ -65,7 +65,8 @@ namespace kconsole
 	void make_texture_atlas(
 		FT_Face& face,
 		char_data*& clookup,
-		uint32_t& atlas_height,
+		uint32_t& highest_glyph,
+		uint32_t& widest_glyph,
 		uint32_t& size,
 		uint32_t& tex,
 		uint32_t loading_range
@@ -77,6 +78,7 @@ namespace kconsole
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
 		uint32_t atlas_width = 0;
+		uint32_t atlas_height = 0;
 		for (ichar c = 0; c < loading_range; c++)
 		{
 			if (FT_Load_Char(face, c, FT_LOAD_RENDER))
@@ -84,6 +86,7 @@ namespace kconsole
 
 			atlas_width += face->glyph->bitmap.width;
 			atlas_height = std::max(atlas_height, face->glyph->bitmap.rows);
+			widest_glyph = std::max(widest_glyph, face->glyph->bitmap.width);
 		}
 
 		// make the texture and allocate some space for it
@@ -150,6 +153,8 @@ namespace kconsole
 		}
 
 		glGenerateMipmap(GL_TEXTURE_2D);
+
+		highest_glyph = atlas_height;
 	}
 
 	// methods //
@@ -173,7 +178,7 @@ namespace kconsole
 
 		// load characters
 		FT_Set_Pixel_Sizes(face, 0, font_size);
-		make_texture_atlas(face, clookup, atlas_height, size, tex_id, loading_range);
+		make_texture_atlas(face, clookup, highest_glyph, widest_glyph, size, tex_id, loading_range);
 
 		// tell user font loading was successful
 		FT_Done_Face(face);

@@ -19,9 +19,9 @@ set(sources
 )
 
 add_library(
-    kconsole
-    STATIC
-    ${headers}
+	kconsole
+	STATIC
+	${headers}
     ${sources}
 )
 
@@ -42,33 +42,33 @@ target_link_libraries(
 # glfw lib
 target_link_libraries(
 	kconsole
-	PUBLIC
+	PRIVATE
 	glfw
 )
 
 # openGL lib
 target_link_libraries(
 	kconsole
-	PUBLIC
+	PRIVATE
 	opengl32.lib
 )
 
 # glew lib
 target_compile_definitions(
 	kconsole
-	PUBLIC
+	PRIVATE
 	GLEW_STATIC
 )
 
 target_link_libraries(
 	kconsole
-	PUBLIC
+	PRIVATE
 	${GLEW_LIB_DIR}
 )
 
 # glew include path
 target_include_directories(
 	kconsole
-	PUBLIC
+	PRIVATE
 	${GLEW_DIR}
 )

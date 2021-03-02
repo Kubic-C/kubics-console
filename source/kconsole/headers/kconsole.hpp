@@ -14,7 +14,6 @@
 
 #include "kconsole_buffer.hpp"
 
-
 #ifdef _WIN32 
 #define  MAIN \
 WINAPI WinMain( \
@@ -116,6 +115,9 @@ namespace kconsole
 			glm::vec3 color
 		);
 
+		// draw everything, can only be called on console thread
+		void _draw();
+
 	public:
 		// get input_from the user, thread protected with a mutex
 		void get_in_buf_mtx(
@@ -131,6 +133,13 @@ namespace kconsole
 		// returns true if 'key' is being pressed, thread protected with a mutex
 		bool key_pressed_mtx(
 			int key
+		);
+
+		// set the output wrappings
+		// returns false if the setting is invalid
+		bool set_output_setting_mtx(
+			uint32_t setting,
+			bool enable
 		);
 
 	public:

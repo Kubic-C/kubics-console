@@ -84,7 +84,8 @@ namespace kconsole
 		);
 
 		uint32_t tex_id;
-		uint32_t atlas_height = 0;
+		uint32_t highest_glyph = 0;
+		uint32_t widest_glyph = 0;
 
 	private:
 		char_data* clookup;

@@ -11,9 +11,11 @@ namespace kconsole
 {
 	// local data
 	glm::mat4x4* cur_mat;
-	size_t highest_glyph;
+	uint32_t highest_glyph;
 	gl_program* cur_prog;
-	glm::vec2* cur_draw_pos;
+	glm::vec2* cur_draw_pos_ptr;
+	glm::vec2* cur_vscreen_dim;
+	_console_impl* cur_console;
 
 	void window_size_callback(
 		GLFWwindow* window,
@@ -25,7 +27,13 @@ namespace kconsole
 		if(cur_prog)
 			glUniformMatrix4fv(glGetUniformLocation(cur_prog->id, "projection"), 1, GL_FALSE, glm::value_ptr(*cur_mat));
 
-		cur_draw_pos->y = static_cast<float>(height - highest_glyph);
+		cur_draw_pos_ptr->y =
+			static_cast<float>(height - highest_glyph);
+
+		*cur_vscreen_dim = glm::vec2(
+			static_cast<float>(width), static_cast<float>(height));
+
+		cur_console->_draw();
 	}
 
 	void framebuffer_callback(
@@ -54,15 +62,8 @@ namespace kconsole
 		while (!glfwWindowShouldClose((GLFWwindow*)window) && !done)
 		{
 			apply_args();
-
-			mtx.lock();
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			render_buf();
-
-			glfwSwapBuffers((GLFWwindow*)window);
-			glfwPollEvents(); 
-			mtx.unlock();
+			_draw();
+			glfwPollEvents();
 
 			// wait for any functions to get the lock
 			while (wait != 0) {}
@@ -94,6 +95,10 @@ namespace kconsole
 		width_arg = width;
 		height_arg = height;
 		name_arg = window_name;
+		cur_vscreen_dim = &screen_dim;
+		cur_console = this;
+		screen_dim = glm::vec2(
+			static_cast<float>(width), static_cast<float>(height));
 	}
 
 	_console_impl::~_console_impl()
@@ -234,6 +239,15 @@ namespace kconsole
 		return key_pressed(window, key);
 	}
 
+	bool _console_impl::set_output_setting_mtx(
+		uint32_t setting,
+		bool enable
+	)
+	{
+		thread_gaurd tg(mtx, wait);
+		return set_output_setting(setting, enable);
+	}
+
 	// getters //
 
 	std::string _console_impl::get_last_error()
@@ -276,7 +290,7 @@ namespace kconsole
 
 		cur_mat = &screen_mat;
 		cur_prog = nullptr;
-		cur_draw_pos = &draw_pos;
+		cur_draw_pos_ptr = &draw_pos;
 
 		return true;
 
@@ -304,8 +318,8 @@ namespace kconsole
 				goto changed_;
 			}
 
-			highest_glyph = current_font->atlas_height;
-			draw_pos.y = static_cast<size_t>(height_arg) - highest_glyph;
+			highest_glyph = current_font->highest_glyph;
+			draw_pos.y = static_cast<uint32_t>(height_arg) - highest_glyph;
 			use_new_font = false;
 			changed = true;
 		}
@@ -365,6 +379,17 @@ namespace kconsole
 
 		// make GPU buffers
 		construct(cell_dim.x, cell_dim.y);
+		mtx.unlock();
+	}
+
+	void _console_impl::_draw()
+	{
+		mtx.lock();
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		render_buf();
+
+		glfwSwapBuffers((GLFWwindow*)window);
 		mtx.unlock();
 	}
 }
