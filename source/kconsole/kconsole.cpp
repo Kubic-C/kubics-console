@@ -61,12 +61,12 @@ namespace kconsole
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		while (!glfwWindowShouldClose((GLFWwindow*)window) && !done)
 		{
+			// wait for any functions to get the lock
+			while (wait != 0) {}
+
 			apply_args();
 			_draw();
 			glfwPollEvents();
-
-			// wait for any functions to get the lock
-			while (wait != 0) {}
 		}
 
 		done = true; // if done was not yet set to true

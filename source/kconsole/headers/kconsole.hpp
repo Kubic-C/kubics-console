@@ -32,12 +32,14 @@ namespace kconsole
 {
 	typedef void* winptr;
 
-	/* the console class
+	/* 
+	 _console_impl:
 	 * allows you to interact
 	 * and make your own
 	 * console window
 	 *
-	 * note: use kconsole::console
+	 note:
+	 * use kconsole::console
 	 * to instantiate a console
 	 * window instead
 	*/ 
@@ -209,8 +211,8 @@ namespace kconsole
 
 			~thread_gaurd()
 			{
-				w--;
 				mtx.unlock();
+				w--;
 			}
 
 		private:
@@ -219,7 +221,8 @@ namespace kconsole
 		};
 	};
 
-	/* console
+	/* 
+	 console:
 	 * constructs and handles a console
 	 * window with its respective buffers.
 	 note:
