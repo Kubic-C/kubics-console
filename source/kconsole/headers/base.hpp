@@ -15,6 +15,6 @@
 namespace kconsole 
 {
 	void lib_test();
-}
+} 
 
-#endif // KUBICS_CONSOLE_BASE_H
+#endif // KUBICS_CONSOLE_BASE_H 

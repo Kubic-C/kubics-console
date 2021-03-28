@@ -4,7 +4,7 @@
 #define KUBICS_CONSOLE_FONT_LOADING_H
 #define NOT_CHAR 0;
 
-#include "base.hpp"
+#include "kconsole_utility.hpp"
 #include <glm/glm.hpp>
 
 namespace kconsole

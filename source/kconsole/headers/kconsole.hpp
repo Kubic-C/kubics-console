@@ -12,6 +12,9 @@
 #define KC_ERROR_FONT_OR_PROGRAM_NOT_SET \
 	"KCONSOLE ERROR: either the font or program has not been set"
 
+#define KC_ERROR_FUNCTION_WRONG_THREAD \
+	"KCONSOLE ERROR: a function or method that should not have been called on the console thread was called" 
+
 #include "kconsole_buffer.hpp"
 
 #ifdef _WIN32 
@@ -161,32 +164,43 @@ namespace kconsole
 		bool error;
 		std::mutex mtx_cv;
 		std::mutex mtx;
-		std::atomic<int> wait = 0;
 		std::vector<std::string> error_info;
-		std::condition_variable cond_var;
+		
+		bool stop;
+		halting_conditional_varible wait_ct; // wait console thread
+		halting_conditional_varible wait_mt; // wait main thread
+		std::condition_variable go;
 
 		// args
 		bool use_new_font;
 		bool use_new_program;
 
-		// ptr
-		font*       font_arg;
-		gl_program* program_arg;
+		struct
+		{
+			font* font;
+			bool* isgood;
+			size_t size;
+			size_t loading_range;
+			std::string dir;
+		} font_args;
 
-		// args
-		int			width_arg;
-		int			height_arg;
-		std::string	name_arg;
+		struct
+		{
+			gl_program*               program;
+			std::string	              vertex_source_dir;
+			std::string	              frag_source_dir;
+			std::vector<std::string>* errors;
+			bool*                     isgood;
 
-		std::string font_dir_arg;
-		bool*       font_isgood_arg; 
-		size_t      font_size_arg;
-		size_t      loading_range_arg;
+		} program_args;
 
-		std::vector<std::string>* errors_arg;
-		bool*                     prog_isgood_arg;
-		std::string				  vertex_source_dir_arg;
-		std::string				  frag_source_dir_arg;
+		struct
+		{
+			std::string name;
+			int         width;
+			int         height;
+		} window_args;
+
 
 		// utlity and helper functions
 
@@ -197,27 +211,40 @@ namespace kconsole
 		void _start();
 
 		void main();
+		
+		void request_stop_console_thread();
+
+		void request_continue_console_thread();
+
+		void response_stop_console_thread();
 
 		// insures thread safety, i.e. no data racing
 		class thread_gaurd
 		{
 		public:
-			thread_gaurd(std::mutex& mtx, std::atomic<int>& w)
-				: mtx(mtx), w(w)
+
+			thread_gaurd(_console_impl* _ci, bool bypass = false)
+				: _ci(_ci), bypass(bypass)
 			{
-				w++;
-				mtx.lock();
+				switch ((bypass || _ci->done))
+				{
+				case false:
+					_ci->request_stop_console_thread();
+				}
 			}
 
 			~thread_gaurd()
 			{
-				mtx.unlock();
-				w--;
+				switch ((bypass || _ci->done))
+				{
+				case false:
+					_ci->request_continue_console_thread();
+				}
 			}
 
 		private:
-			std::mutex& mtx;
-			std::atomic<int>& w;
+			bool bypass;
+			_console_impl* _ci;
 		};
 	};
 

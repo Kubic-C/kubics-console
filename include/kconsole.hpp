@@ -32,12 +32,14 @@ namespace kconsole
 {
 	typedef void* winptr;
 
-	/* the console class
+	/* 
+	 _console_impl:
 	 * allows you to interact
 	 * and make your own
 	 * console window
 	 *
-	 * note: use kconsole::console
+	 note:
+	 * use kconsole::console
 	 * to instantiate a console
 	 * window instead
 	*/ 
@@ -159,9 +161,9 @@ namespace kconsole
 		bool error;
 		std::mutex mtx_cv;
 		std::mutex mtx;
-		std::atomic<int> wait = 0;
+		std::condition_variable console_t_cv; // console thread is executing, main thread needs to wait
+		std::condition_variable main_t_cv; // main thread is executing, console thread needs to wait
 		std::vector<std::string> error_info;
-		std::condition_variable cond_var;
 
 		// args
 		bool use_new_font;
@@ -196,30 +198,22 @@ namespace kconsole
 
 		void main();
 
+	public:
 		// insures thread safety, i.e. no data racing
 		class thread_gaurd
 		{
 		public:
-			thread_gaurd(std::mutex& mtx, std::atomic<int>& w)
-				: mtx(mtx), w(w)
-			{
-				w++;
-				mtx.lock();
-			}
+			thread_gaurd(_console_impl* _ci);
 
-			~thread_gaurd()
-			{
-				w--;
-				mtx.unlock();
-			}
+			~thread_gaurd();
 
 		private:
-			std::mutex& mtx;
-			std::atomic<int>& w;
+			_console_impl* _ci;
 		};
 	};
 
-	/* console
+	/* 
+	 console:
 	 * constructs and handles a console
 	 * window with its respective buffers.
 	 note:

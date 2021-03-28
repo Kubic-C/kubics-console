@@ -48,6 +48,8 @@ namespace kconsole
 
 }
 
+#include <iostream>
+
 namespace kconsole
 {
 	typedef std::unique_lock<std::mutex> scope_mtx;
@@ -57,16 +59,27 @@ namespace kconsole
 	{
 		_start();
 
+		timer debug_timer;
+
 		// enter main thread
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		while (!glfwWindowShouldClose((GLFWwindow*)window) && !done)
 		{
-			// wait for any functions to get the lock
-			while (wait != 0) {}
+			std::cout << "starting\n";
+			debug_timer.start();
 
 			apply_args();
 			_draw();
 			glfwPollEvents();
+
+			// see if the main thread requested a stop
+			if (stop)
+			{
+				response_stop_console_thread();
+			}
+
+			debug_timer.end();
+			std::cout << "ending, took: " << debug_timer.show(1000) << '\n';
 		}
 
 		done = true; // if done was not yet set to true
@@ -84,17 +97,15 @@ namespace kconsole
 		bool& good
 	)
 		: done(false), error(false), error_info(), tmain(nullptr), window(nullptr),
-		use_new_font(false), use_new_program(false), errors_arg(nullptr), font_arg(nullptr),
-		program_arg(nullptr), font_dir_arg(""), font_isgood_arg(nullptr), prog_isgood_arg(nullptr), 
-		vertex_source_dir_arg(""), frag_source_dir_arg(""), font_size_arg(0), loading_range_arg(0)
+		use_new_font(false), use_new_program(false)
 	{
 		cell_dim.x = buffer_width;
 		cell_dim.y = buffer_height;
 
 		window_good = &good;
-		width_arg = width;
-		height_arg = height;
-		name_arg = window_name;
+		window_args.width = width;
+		window_args.height = height;
+		window_args.name = window_name;
 		cur_vscreen_dim = &screen_dim;
 		cur_console = this;
 		screen_dim = glm::vec2(
@@ -120,9 +131,8 @@ namespace kconsole
 		tmain = new std::thread(&_console_impl::main, this);
 
 		// wait for use_new_font and use_new_program to be set to false
-		scope_mtx scope(mtx_cv);
-		cond_var.wait(scope); // wait for window creation
-		cond_var.wait(scope); // wait for program and font creation, good or bad
+		wait_mt.wait(); // wait for window creation
+		wait_mt.wait(); // wait for program and font creation, good or bad
 	}
 
 	void _console_impl::end()
@@ -141,7 +151,7 @@ namespace kconsole
 		font* font
 	)
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this, true);
 		use_font(font);
 	}
 
@@ -152,11 +162,11 @@ namespace kconsole
 		uint32_t loading_range
 	)
 	{
-		thread_gaurd tg(mtx, wait);
-		font_isgood_arg = &isgood;
-		font_dir_arg = font_dir;
-		font_size_arg = font_size;
-		loading_range_arg = loading_range;
+		thread_gaurd tg(this, true);
+		font_args.isgood   = &isgood;
+		font_args.dir      = font_dir;
+		font_args.size     = font_size;
+		font_args.loading_range = loading_range;
 		use_new_font = true;
 	}
 
@@ -164,7 +174,7 @@ namespace kconsole
 		gl_program* program_
 	)
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this, true);
 		use_program(program_);
 	} 
 
@@ -175,11 +185,11 @@ namespace kconsole
 		bool& isgood
 	)
 	{
-		thread_gaurd tg(mtx, wait);
-		prog_isgood_arg = &isgood;
-		errors_arg = &errors;
-		vertex_source_dir_arg = vertex_source_dir;
-		frag_source_dir_arg = frag_source_dir;
+		thread_gaurd tg(this, true);
+		program_args.isgood = &isgood;
+		program_args.errors = &errors;
+		program_args.vertex_source_dir = vertex_source_dir;
+		program_args.frag_source_dir = frag_source_dir;
 		use_new_program = true;
 	}
 
@@ -187,7 +197,7 @@ namespace kconsole
 		wchar_t** buf
 	)
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this);
 		write2D(buf);
 	}
 
@@ -196,7 +206,7 @@ namespace kconsole
 		int buf_size
 	)
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this);
 		write1D(buf, buf_size);
 	}
 
@@ -206,7 +216,7 @@ namespace kconsole
 		glm::vec3 color
 	)
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this);
 		set_color(pos1, pos2, color);
 	}
 
@@ -215,19 +225,19 @@ namespace kconsole
 		std::wstring& str
 	)
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this);
 		get_in_buf(str);
 	}
 
 	void _console_impl::clear_output_buffer_mtx()
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this);
 		clear_output_buffer();
 	}
 
 	void _console_impl::clear_input_buffer_mtx()
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this);
 		clear_input_buffer();
 	}
 
@@ -235,7 +245,7 @@ namespace kconsole
 		int key
 	)
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this);
 		return key_pressed(window, key);
 	}
 
@@ -244,7 +254,7 @@ namespace kconsole
 		bool enable
 	)
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this);
 		return set_output_setting(setting, enable);
 	}
 
@@ -275,7 +285,9 @@ namespace kconsole
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		window = glfwCreateWindow(width_arg, height_arg, name_arg.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(window_args.width, 
+			window_args.height, window_args.name.c_str(), nullptr, nullptr);
+
 		if (!window)
 		{
 			glfwTerminate();
@@ -303,14 +315,15 @@ namespace kconsole
 
 	void _console_impl::apply_args()
 	{
-		thread_gaurd tg(mtx, wait);
+		thread_gaurd tg(this, true);
+
 		bool changed = false;
 		if (use_new_font)
 		{
-			use_font(font_dir_arg.c_str(),
-				*font_isgood_arg, font_size_arg, loading_range_arg);
+			use_font(font_args.dir.c_str(),
+				*font_args.isgood, font_args.size, font_args.loading_range);
 			
-			if (!*font_isgood_arg)
+			if (!*font_args.isgood)
 			{
 				use_new_font = false;
 				changed = true;
@@ -319,17 +332,17 @@ namespace kconsole
 			}
 
 			highest_glyph = current_font->highest_glyph;
-			draw_pos.y = static_cast<uint32_t>(height_arg) - highest_glyph;
+			draw_pos.y = static_cast<uint32_t>(window_args.height) - highest_glyph;
 			use_new_font = false;
 			changed = true;
 		}
 
 		if (use_new_program)
 		{
-			*prog_isgood_arg = use_program(*errors_arg,
-				vertex_source_dir_arg.c_str(), frag_source_dir_arg.c_str());
+			*program_args.isgood = use_program(*program_args.errors,
+				program_args.vertex_source_dir.c_str(), program_args.frag_source_dir.c_str());
 
-			if (!*prog_isgood_arg)
+			if (!*program_args.isgood)
 			{
 				use_new_program = false;
 				changed = true;
@@ -338,7 +351,7 @@ namespace kconsole
 			}
 			
 			screen_mat = 
-				glm::ortho(0.0f, static_cast<float>(width_arg), 0.0f, static_cast<float>(height_arg));
+				glm::ortho(0.0f, static_cast<float>(window_args.width), 0.0f, static_cast<float>(window_args.height));
 
 			program->use();
 			glUniformMatrix4fv(glGetUniformLocation(program->id, "projection"), 1, GL_FALSE, glm::value_ptr(screen_mat));
@@ -351,7 +364,9 @@ namespace kconsole
 
 	changed_:
 		if (changed)
-			cond_var.notify_one();
+		{
+			wait_mt.notify();
+		}
 	}
 
 	void _console_impl::_start()
@@ -359,7 +374,6 @@ namespace kconsole
 		mtx.lock();
 		// make the window
 		*window_good = make_window();
-		cond_var.notify_all();
 
 		// make context current
 		glfwMakeContextCurrent((GLFWwindow*)window);
@@ -379,6 +393,7 @@ namespace kconsole
 
 		// make GPU buffers
 		construct(cell_dim.x, cell_dim.y);
+		wait_mt.notify();
 		mtx.unlock();
 	}
 
@@ -391,6 +406,44 @@ namespace kconsole
 
 		glfwSwapBuffers((GLFWwindow*)window);
 		mtx.unlock();
+	}
+
+	void _console_impl::response_stop_console_thread()
+	{
+		wait_ct.wait();
+	}
+
+	void _console_impl::request_stop_console_thread()
+	{
+		// expected to be called from a seperate thread
+		if (std::this_thread::get_id() == tmain->get_id())
+			goto bad;
+
+		//	stop console thread
+		stop = true;
+
+		return;
+
+	bad:
+		error_info.emplace_back(KC_ERROR_FUNCTION_WRONG_THREAD);
+		error = true;
+	}
+
+	void _console_impl::request_continue_console_thread()
+	{
+		// expected to be called from a seperate thread
+		if (std::this_thread::get_id() == tmain->get_id())
+			goto bad;
+
+		// continue console thread
+		stop = false;
+		wait_ct.notify();
+
+		return;
+		
+	bad:
+		error_info.emplace_back(KC_ERROR_FUNCTION_WRONG_THREAD);
+		error = true;
 	}
 }
 
