@@ -23,8 +23,10 @@ namespace kconsole
     {
         std::mutex mtx;
         std::unique_lock<std::mutex> mtx_u(mtx);
+
         waiting = true;
         cv.wait(mtx_u);
+        waiting = false;
     }
 }
 

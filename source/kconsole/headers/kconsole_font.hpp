@@ -89,6 +89,7 @@ namespace kconsole
 
 	private:
 		char_data* clookup;
+		uint32_t loading_range;
 		uint32_t size;
 	};
 }

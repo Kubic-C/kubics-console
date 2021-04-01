@@ -14,7 +14,7 @@ namespace kconsole
     {
         T** array_ = new T * [width];
 
-        for (unsigned int x = 0; x < width; x++)
+        for (uint32_t x = 0; x < width; x++)
             array_[x] = new T[height];
 
         return array_;
@@ -24,7 +24,7 @@ namespace kconsole
     template<typename T>
     void delete_2D_array(T** array_, unsigned int width)
     {
-        for (int y = 0; y < width; y++)
+        for (uint32_t y = 0; y < width; y++)
         {
             delete[] array_[y];
         }

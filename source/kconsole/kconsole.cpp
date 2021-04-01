@@ -24,6 +24,7 @@ namespace kconsole
 	)
 	{
 		*cur_mat = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height));
+
 		if(cur_prog)
 			glUniformMatrix4fv(glGetUniformLocation(cur_prog->id, "projection"), 1, GL_FALSE, glm::value_ptr(*cur_mat));
 
@@ -57,16 +58,12 @@ namespace kconsole
 	// MAIN //
 	void _console_impl::main()
 	{
+		// start opengl(glfw, and glew)
 		_start();
 
-		timer debug_timer;
-
-		// enter main thread
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		while (!glfwWindowShouldClose((GLFWwindow*)window) && !done)
 		{
-			std::cout << "starting\n";
-			debug_timer.start();
 
 			apply_args();
 			_draw();
@@ -77,14 +74,11 @@ namespace kconsole
 			{
 				response_stop_console_thread();
 			}
-
-			debug_timer.end();
-			std::cout << "ending, took: " << debug_timer.show(1000) << '\n';
 		}
 
-		done = true; // if done was not yet set to true
 		delete_();
 		glfwTerminate();
+		done = true; // if done was not yet set to true
 	}
 
 	// constructors //
@@ -97,15 +91,17 @@ namespace kconsole
 		bool& good
 	)
 		: done(false), error(false), error_info(), tmain(nullptr), window(nullptr),
-		use_new_font(false), use_new_program(false)
+		stop(false)
 	{
 		cell_dim.x = buffer_width;
 		cell_dim.y = buffer_height;
 
+		window_args_ptr = new window_args;
 		window_good = &good;
-		window_args.width = width;
-		window_args.height = height;
-		window_args.name = window_name;
+		window_args_ptr->width = width;
+		window_args_ptr->height = height;
+		window_args_ptr->name = window_name;
+
 		cur_vscreen_dim = &screen_dim;
 		cur_console = this;
 		screen_dim = glm::vec2(
@@ -114,12 +110,17 @@ namespace kconsole
 
 	_console_impl::~_console_impl()
 	{
+		if (window_args_ptr)
+		{
+			delete window_args_ptr;
+			window_args_ptr = nullptr;
+		}
 	}
 
 	// methods //
 	void _console_impl::start()
 	{
-		if (!use_new_font || !use_new_program)
+		if (!program_args_ptr || !font_args_ptr)
 		{
 			error_info.emplace_back(KC_ERROR_FONT_OR_PROGRAM_NOT_SET);
 			error = true;
@@ -140,6 +141,7 @@ namespace kconsole
 		if (tmain) // if tmain running
 		{
 			done = true;
+			wait_ct.notify();
 			tmain->join();
 			delete tmain;
 			tmain = nullptr;
@@ -163,11 +165,11 @@ namespace kconsole
 	)
 	{
 		thread_gaurd tg(this, true);
-		font_args.isgood   = &isgood;
-		font_args.dir      = font_dir;
-		font_args.size     = font_size;
-		font_args.loading_range = loading_range;
-		use_new_font = true;
+		font_args_ptr = new font_args;
+		font_args_ptr->isgood   = &isgood;
+		font_args_ptr->dir      = font_dir;
+		font_args_ptr->size     = font_size;
+		font_args_ptr->loading_range = loading_range;
 	}
 
 	void _console_impl::use_program_mtx(
@@ -186,11 +188,11 @@ namespace kconsole
 	)
 	{
 		thread_gaurd tg(this, true);
-		program_args.isgood = &isgood;
-		program_args.errors = &errors;
-		program_args.vertex_source_dir = vertex_source_dir;
-		program_args.frag_source_dir = frag_source_dir;
-		use_new_program = true;
+		program_args_ptr = new program_args;
+		program_args_ptr->isgood = &isgood;
+		program_args_ptr->errors = &errors;
+		program_args_ptr->vertex_source_dir = vertex_source_dir;
+		program_args_ptr->frag_source_dir = frag_source_dir;
 	}
 
 	void _console_impl::write2D_mtx(
@@ -285,8 +287,8 @@ namespace kconsole
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		window = glfwCreateWindow(window_args.width, 
-			window_args.height, window_args.name.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(window_args_ptr->width,
+			window_args_ptr->height, window_args_ptr->name.c_str(), nullptr, nullptr);
 
 		if (!window)
 		{
@@ -303,7 +305,6 @@ namespace kconsole
 		cur_mat = &screen_mat;
 		cur_prog = nullptr;
 		cur_draw_pos_ptr = &draw_pos;
-
 		return true;
 
 	bad:
@@ -318,54 +319,22 @@ namespace kconsole
 		thread_gaurd tg(this, true);
 
 		bool changed = false;
-		if (use_new_font)
+		if (font_args_ptr)
 		{
-			use_font(font_args.dir.c_str(),
-				*font_args.isgood, font_args.size, font_args.loading_range);
-			
-			if (!*font_args.isgood)
-			{
-				use_new_font = false;
-				changed = true;
-				done = true;
-				goto changed_;
-			}
-
-			highest_glyph = current_font->highest_glyph;
-			draw_pos.y = static_cast<uint32_t>(window_args.height) - highest_glyph;
-			use_new_font = false;
+			try_new_font();
 			changed = true;
 		}
 
-		if (use_new_program)
+		if (program_args_ptr)
 		{
-			*program_args.isgood = use_program(*program_args.errors,
-				program_args.vertex_source_dir.c_str(), program_args.frag_source_dir.c_str());
-
-			if (!*program_args.isgood)
-			{
-				use_new_program = false;
-				changed = true;
-				done = true;
-				goto changed_;
-			}
-			
-			screen_mat = 
-				glm::ortho(0.0f, static_cast<float>(window_args.width), 0.0f, static_cast<float>(window_args.height));
-
-			program->use();
-			glUniformMatrix4fv(glGetUniformLocation(program->id, "projection"), 1, GL_FALSE, glm::value_ptr(screen_mat));
-
-			cur_prog = program;
-			use_new_program = false;
+			try_new_program();
 			changed = true;
 		}
 
-
-	changed_:
 		if (changed)
 		{
 			wait_mt.notify();
+			changed = false;
 		}
 	}
 
@@ -393,6 +362,7 @@ namespace kconsole
 
 		// make GPU buffers
 		construct(cell_dim.x, cell_dim.y);
+
 		wait_mt.notify();
 		mtx.unlock();
 	}
@@ -408,8 +378,61 @@ namespace kconsole
 		mtx.unlock();
 	}
 
+	bool _console_impl::try_new_font()
+	{
+		use_font(font_args_ptr->dir.c_str(),
+			*font_args_ptr->isgood, font_args_ptr->size, font_args_ptr->loading_range);
+
+		if (!*font_args_ptr->isgood)
+		{
+			delete font_args_ptr;
+			font_args_ptr = nullptr;
+			done = true;
+
+			return false;
+		}
+
+		highest_glyph = current_font->highest_glyph;
+		draw_pos.y = static_cast<uint32_t>(window_args_ptr->height) - highest_glyph;
+
+		delete font_args_ptr;
+		font_args_ptr = nullptr;
+		return true;
+	}
+
+	bool _console_impl::try_new_program()
+	{
+		*program_args_ptr->isgood = use_program(*program_args_ptr->errors,
+			program_args_ptr->vertex_source_dir.c_str(), program_args_ptr->frag_source_dir.c_str());
+
+		if (!*program_args_ptr->isgood)
+		{
+			delete program_args_ptr;
+			program_args_ptr = nullptr;
+			done = true;
+
+			return false;
+		}
+
+		screen_mat =
+			glm::ortho(0.0f, static_cast<float>(window_args_ptr->width),
+				0.0f, static_cast<float>(window_args_ptr->height));
+
+		program->use();
+		glUniformMatrix4fv(glGetUniformLocation(program->id, "projection"), 1, GL_FALSE, glm::value_ptr(screen_mat));
+
+		cur_prog = program;
+
+		delete program_args_ptr;
+		program_args_ptr = nullptr;
+		return true;
+	}
+
 	void _console_impl::response_stop_console_thread()
 	{
+		while(!wait_mt.waiting) {}
+		wait_mt.notify();
+
 		wait_ct.wait();
 	}
 
@@ -421,6 +444,7 @@ namespace kconsole
 
 		//	stop console thread
 		stop = true;
+		wait_mt.wait();
 
 		return;
 

@@ -13,9 +13,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-// standard libary
+// standard library
 #include <iostream>
-#include <string>
 
 namespace kconsole
 {
@@ -29,9 +28,11 @@ namespace kconsole
 		FT_Done_FreeType(lib);
 		std::cout << "freetype2: " << (error == 0 ? "ok" : "error code(" + std::to_string(error) + ")") << '\n';
 
+		// glm
 		glm::mat4x4 mat;
 		std::cout << "glm: " << "ok" << '\n';
 
+		// opengl/glfw/glew
 		error = glfwInit();
 		GLFWwindow* window = glfwCreateWindow(100, 100, "libtest", nullptr, nullptr);
 		glfwMakeContextCurrent(window);

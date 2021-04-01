@@ -40,12 +40,37 @@ namespace kconsole
 			break;
 		}
 	}
+
+	glm::vec2* cursor_pos_ptr;
+	cursor_pos_fun* cursor_pos_callback_ptr_fun = nullptr;
+	void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+	{
+		cursor_pos_ptr->x = xpos;
+		cursor_pos_ptr->y = ypos;
+
+		switch ((int)cursor_pos_callback_ptr_fun)
+		{
+		case NULL:
+			break;
+
+		default:
+			(*cursor_pos_callback_ptr_fun)(xpos, ypos);
+			break;
+		}
+
+	}
+
+
+	//void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+	//{
+	//}
 }
 
 // input class
 namespace kconsole
 {
 	input_manager::input_manager()
+		: cursor_pos(0.0f, 0.0f)
 	{
 		local_in_buf = &in_buf;
 	}
@@ -68,6 +93,9 @@ namespace kconsole
 	{
 		glfwSetCharCallback((GLFWwindow*)window, character_callback);
 		glfwSetKeyCallback((GLFWwindow*)window, key_callback);
+
+		cursor_pos_ptr = &this->cursor_pos;
+		glfwSetCursorPosCallback((GLFWwindow*)window, cursor_position_callback);
 	}
 
 	bool input_manager::key_pressed(
@@ -76,6 +104,12 @@ namespace kconsole
 	)
 	{
 		return glfwGetKey((GLFWwindow*)window, key) != GLFW_RELEASE;
+	}
+
+	void input_manager::set_cursor_pos_callback(cursor_pos_fun fun)
+	{
+		m_cursor_pos_callback = fun;
+		cursor_pos_callback_ptr_fun = &m_cursor_pos_callback;
 	}
 }
 
@@ -355,6 +389,9 @@ namespace kconsole
 		output_buffer.resize(cell_dim.x);
 		for (int x = 0; x < cell_dim.x; x++)
 			output_buffer[x].resize(cell_dim.y);
+
+		// set the default color to white
+		set_color(glm::ivec2(0, 0), cell_dim, glm::vec3(1.0f, 1.0f, 1.0f));
 	}
 
 	void output_manager::delete_font()

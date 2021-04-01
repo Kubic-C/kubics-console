@@ -40,7 +40,7 @@ namespace kconsole
 
 	// constructors //
 	font::font()
-		: clookup(nullptr), size(0), tex_id(0)
+		: clookup(nullptr), size(0), tex_id(0), loading_range(0)
 	{
 		
 	}
@@ -179,6 +179,7 @@ namespace kconsole
 		// load characters
 		FT_Set_Pixel_Sizes(face, 0, font_size);
 		make_texture_atlas(face, clookup, highest_glyph, widest_glyph, size, tex_id, loading_range);
+		this->loading_range = loading_range;
 
 		// tell user font loading was successful
 		FT_Done_Face(face);
@@ -210,6 +211,9 @@ namespace kconsole
 	)
 	{
 		assert(clookup != nullptr);
+		if (char_ > loading_range)
+			return clookup[static_cast<ichar>(0)];
+
 		return clookup[static_cast<ichar>(char_)];
 	}
 }

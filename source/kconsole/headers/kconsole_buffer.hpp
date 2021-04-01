@@ -142,6 +142,7 @@
 
 namespace kconsole
 {
+	class _console_impl;
 
 	// "character cell"
 	struct cell
@@ -159,6 +160,8 @@ namespace kconsole
 		int action; 
 		int mods;
 	};
+
+	typedef void(*cursor_pos_fun)(float posx, float posy);
 
 	/* input_manager
 	 * impl for input manager
@@ -190,10 +193,16 @@ namespace kconsole
 			int key
 		);
 
+		// cursor pos callback
+		void set_cursor_pos_callback(
+			cursor_pos_fun fun
+		);
+
 	protected:
 		std::wstring in_buf;
 		std::vector<key_event> keyboard_events;
-		
+		cursor_pos_fun m_cursor_pos_callback;
+		glm::vec2 cursor_pos;
 	};
 
 	/* output_manager

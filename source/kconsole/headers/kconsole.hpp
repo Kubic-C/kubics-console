@@ -172,34 +172,35 @@ namespace kconsole
 		std::condition_variable go;
 
 		// args
-		bool use_new_font;
-		bool use_new_program;
-
-		struct
+		struct font_args
 		{
-			font* font;
-			bool* isgood;
-			size_t size;
-			size_t loading_range;
+			font* font = nullptr;
+			bool* isgood = nullptr;
+			size_t size = 0;
+			size_t loading_range = 0;
 			std::string dir;
-		} font_args;
+		};
 
-		struct
+		struct program_args
 		{
-			gl_program*               program;
-			std::string	              vertex_source_dir;
-			std::string	              frag_source_dir;
-			std::vector<std::string>* errors;
-			bool*                     isgood;
+			gl_program*               program           = nullptr;
+			std::string	              vertex_source_dir = "";
+			std::string	              frag_source_dir   = "";
+			std::vector<std::string>* errors            = nullptr;
+			bool*                     isgood            = nullptr;
 
-		} program_args;
+		};
 
-		struct
+		struct window_args
 		{
-			std::string name;
-			int         width;
-			int         height;
-		} window_args;
+			std::string name   = "";
+			int         width  = 0;
+			int         height = 0; 
+		};
+
+		program_args* program_args_ptr;
+		window_args*  window_args_ptr;
+		font_args*    font_args_ptr;
 
 
 		// utlity and helper functions
@@ -212,6 +213,10 @@ namespace kconsole
 
 		void main();
 		
+		bool try_new_font();
+
+		bool try_new_program();
+
 		void request_stop_console_thread();
 
 		void request_continue_console_thread();
@@ -226,7 +231,8 @@ namespace kconsole
 			thread_gaurd(_console_impl* _ci, bool bypass = false)
 				: _ci(_ci), bypass(bypass)
 			{
-				switch ((bypass || _ci->done))
+				bool pass = (bypass || _ci->done);
+				switch (pass)
 				{
 				case false:
 					_ci->request_stop_console_thread();
@@ -235,7 +241,8 @@ namespace kconsole
 
 			~thread_gaurd()
 			{
-				switch ((bypass || _ci->done))
+				bool pass = (bypass || _ci->done);
+				switch (pass)
 				{
 				case false:
 					_ci->request_continue_console_thread();
